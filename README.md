@@ -56,24 +56,37 @@ Se ingresa primero la ip a la que se quiere enviar el dato, seguido del puerto a
 
 # GSM 
 
-Sistema de comunicación de radio presente en sistemas móviles como los celulares, en el mercado existen diferentes módulos que manejan estas tecnologías, algunos de los cuales se pueden adquirir, son los módulos basados en Shields de tecnología GSM, estos nos permiten integrarse a algún sistema embebido como Arduino o Raspberry para, realizar funciones de mensajería SMS, llamadas o incluso algunos traen integrado un pequeño modulo de localización para ámbitos de navegación. Se requiere el uso de una SIM que se conecte al modulo GSM para poder funcionar.
 
-Para la programación de estos módulos es requerido hacer uso de los comandos AT, en la que a través de diferentes secuencias realizan diferentes acciones como, por ejemplo: “AT+CMGF=1” para configurar un formato ASCII o “AT+CMGS=xxxx” para enviar un mensaje a algún numero asignado. Dentro del repositorio se encuentra un ejemplo de envío de mensaje SMS asignado un número de teléfono y enviándose en un intervalo de ciertos segundos.
+Sistema de comunicación de radio presente en sistemas móviles como los celulares, en el mercado existen diferentes módulos que manejan estas tecnologías, algunos de los cuales se pueden adquirir, son los módulos basados en Shields de tecnología GSM, estos nos permiten integrarse a algún sistema embebido como Arduino o Raspberry para, realizar funciones de mensajería SMS, llamadas o incluso algunos traen integrado un pequeño módulo de localización para ámbitos de navegación. Se requiere el uso de una SIM que se conecte al módulo GSM para poder funcionar.
 
-Es importante que antes de iniciar el LOOP del código, se inicialicen ciertos parámetros de configuración del módulo:
+Para la programación de estos módulos es requerido hacer uso de los comandos AT, en la que a través de diferentes secuencias realizan diferentes acciones como, por ejemplo: “AT+CMGF=1” para configurar un formato ASCII o “AT+CMGS=xxxx” para enviar un mensaje a algún número asignado. Dentro del repositorio se encuentra un ejemplo de envío de mensaje SMS asignado un número de teléfono y enviándolo en un intervalo de ciertos segundos.
+
+El código utilizado para esta demostración se llama "GSM_Envio-Alarma", en este se encontrará con un ejemplo de cómo enviar mensajes SMS utilizando el módulo GSM conectado a un Arduino Uno, al inicio del código se declaran variables como los pines utilizados por el ShieldGSM, para este caso se utiliza un Shield M95 de Quectel:
+
+int pwr = 2;                    // pin para power                
+int eoff = 3;                   // pin para emergency off
+int stat = 4;                   // pin para status
+int led = 13;                   // pin para encender LED
+int cont = 0;
+
+Después de esto se encontrará con una sección del código que está comentada, la puede borrar si desea, esta sección comentada se usa para un ejemplo de sistema de alarma que será explicado brevemente más adelante pero no es necesaria para el funcionamiento del código.
+
+Es importante que antes de iniciar el LOOP del código, se inicializan ciertos parámetros de configuración del módulo:
 
 “AT” - (Inicializar el módulo)
-
-“AT+CFUN=1" - (activa todas las funciones principales del módulo celular)
-
-"AT+CMGF=1” - (configura el formato de MSM en ASCII)
-
+“AT+CFUN=1" - (activa todas las funciones principales del módulo celular))
+"AT+CMGF=1” - (configura el formato de MSM en ASCII))
 "AT+CSQ"    - (evalúa la señal de la que dispone el dispositivo)
 
-Es posible que se requiera el uso de mas comandos AT adicionales para trabajar otras funciones, consulte un listado de comandos AT para utilizar los comandos que requiera según su proyecto.
+Es posible que se requiera el uso de más comandos AT adicionales para trabajar otras funciones, consulte un listado de comandos AT para utilizar los comandos que requiera según su proyecto.
 
 Si desea enviar datos numéricos es requerido que antes se conviertan a formato ASCII, en nuestro caso se utiliza la siguiente función, pero puede utilizar cualquier función de preferencia:
-
 dtostrf(valor_flotante, min_width, # digitos, variable_final);
 
 La velocidad para, por ejemplo, que al enviar un SMS llegue de forma rápida al número asignado depende directamente de la capacidad del módulo/shield que se esté utilizando.
+
+### Sistema de Alarma:
+
+Podemos utilizar los módulos GSM para enviar mensajes según la lectura de algún sensor, por ejemplo en el código utilizamos la siguiente función:
+En este caso se declaran las variables iniciales dependiendo del sensor que se esté utilizando (en mi caso es la sección que estaba comentada en el inicio),  en mi ejemplo se simula el valor de un flujo, en el que si llega a ser muy bajo nos envía directamente a la función “Emergencia:”.
+ “Emergencia :” se activa cuando el valor de alguna variable (en este caso por ejemplo un flujo) esté por fuera de un umbral específico, de forma que si está por debajo o por encima de este rango podamos activar el envío de un SMS de emergencia con un texto de alerta, además de reducir el delay para que se envíe de forma continua hasta que la variable cambie o vuelva a su rango de normalidad. 
