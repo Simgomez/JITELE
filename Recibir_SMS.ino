@@ -47,7 +47,8 @@ void setup() {
     delay(2000);
     Serial.println("AT+CMGF=1");
 
-      Serial.println("AT+CMGR=?");
+    // se configura para recibir mensajes
+    Serial.println("AT+CMGR=?");
       delay(500);
   // se configura para ver mensajes recibidos
     delay(2000);
