@@ -90,3 +90,54 @@ La velocidad para, por ejemplo, que al enviar un SMS llegue de forma rápida al 
 Podemos utilizar los módulos GSM para enviar mensajes según la lectura de algún sensor, por ejemplo en el código utilizamos la siguiente función:
 En este caso se declaran las variables iniciales dependiendo del sensor que se esté utilizando (en mi caso es la sección que estaba comentada en el inicio),  en mi ejemplo se simula el valor de un flujo, en el que si llega a ser muy bajo nos envía directamente a la función “Emergencia:”.
  “Emergencia :” se activa cuando el valor de alguna variable (en este caso por ejemplo un flujo) esté por fuera de un umbral específico, de forma que si está por debajo o por encima de este rango podamos activar el envío de un SMS de emergencia con un texto de alerta, además de reducir el delay para que se envíe de forma continua hasta que la variable cambie o vuelva a su rango de normalidad. 
+
+
+### Recibir mensaje SMS
+
+Por otro lado, el código llamado “Recibe_SMS” es una base para la recepción de mensajes de texto, la configuración inicial del modulo GSM es la misma solo que, se le agrega un comando AT adicional que es: 
+
+Serial.println("AT+CMGR=?");
+
+Esta secuencia se utiliza para que el modulo GSM se configure para estar a la espera de recibir mensajes. Para poder detectar que nuestro modulo GSM ha recibido un mensaje es requerido consultar el puerto serial, ya que la comunicación I2C entre la shield y el Arduino nos permite consultar datos de entrada que le lleguen a la shield GSM por medio del monitor de Arduino.
+
+Antes de empezar explicar el siguiente código, es importante declarar una variable cualquiera (en nuestro caso “mensaje”) = 0, esto es para que más adelante cuando se almacenen los datos del puerto serial, esta variable cambie a =1 y poder salirse de todos los condicionales, la razón es porque de no ser así el monitor va a imprimir constantemente el mensaje recibido, marcando errores en su proceso.
+
+Ahora que ya declaramos la variable podemos empezar con el siguiente código que está dentro del LOOP:
+
+
+
+if (Serial.available() > 0 && mensaje == 0) {        //Pregunta si hay un dato en el serial
+        Data = Serial.read();                         // Se lee el dato
+        if (Data == '@') {                                 // Si reconoce la característica del dato comienza a almacenarlo
+          while (true) {
+            if (Serial.available() > 0 && mensaje == 0) {                  // Vuelve a preguntar los datos pero apartir del @xxxx
+              Data2 = Serial.read();                  // Se lee los datos del serial
+              GSM_data[j] = Data2;                         // Se guarda en la cadena
+              j++;
+              if (Data2 == '\n') {                         //Fin de mensaje
+                Serial.println("Lectura:");                 
+                Serial.print(GSM_data);                    // Imprime los caracteres almacenados
+                mensaje=1;
+              }
+            }
+          }
+        }
+    }
+
+el primer if (Serial.available() > 0 && mensaje == 0) se usa para consultar si existen datos en el puerto serial, esto se da en caso de que el modulo GSM por ejemplo, reciba algún SMS, en caso de ser correcta esta afirmación entonces, se lee el dato en la variable “Data”.
+
+
+En el segundo if (Data == '@') se utiliza para poder detectar desde cuando inicia el mensaje, la razón es porque cuando el modulo GSM recibe un SMS, internamente recibe una gran cantidad de caracteres relacionadas a comandos AT, sin tener un carácter como el “@” al iniciar el mensaje enviado será muy difícil saber desde que punto empieza un mensaje o simplemente son comandos AT, códigos ASCII y entre otros.
+Ahora bien, cuando detecta un “@” él sabrá que a partir de este punto en adelante empieza el mensaje SMS, por lo que lo almacena:
+
+
+while (true) {
+            if (Serial.available() > 0 && mensaje == 0) {                  // Vuelve a preguntar los datos pero apartir del @xxxx
+              Data2 = Serial.read();                  // Se lee los datos del serial
+              GSM_data[j] = Data2;                         // Se guarda en la cadena
+              j++;
+
+Finalmente, cuando se termina de almacenar el SMS en una cadena, consultamos si el mensaje ya termino haciendo uso del:             
+  if (Data2 == '\n')                        //Fin de mensaje
+
+En caso de ser correcta la afirmación entonces imprime el mensaje guardado y, nuestra variable cambia (mensaje = 1) para poder salir de todos los condicionales y que no se este imprimiendo una y otra vez el mensaje almacenado.
